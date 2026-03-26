@@ -1,0 +1,26 @@
+name = "PoissonGrids"
+uuid = "738b24c9-c2dc-46c1-8999-11ea9699e80b"
+version = "0.1.0"
+authors = ["albert-de-montserrat <albert.de.montserrat@gmail.com>"]
+
+[deps]
+DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MuladdMacro = "46d2c3a1-f734-5fdb-9937-b9b9aeba4221"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
+[compat]
+DifferentiationInterface = "0.7.16"
+ForwardDiff = "1.3.3"
+KernelAbstractions = "0.9.41"
+LinearAlgebra = "1.12.0"
+MuladdMacro = "0.2.4"
+StaticArrays = "1.9.18"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
