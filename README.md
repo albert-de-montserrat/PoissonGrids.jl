@@ -9,9 +9,10 @@ functions.
 using PoissonGrids
 
 M = gaussian_monitor(5.0, 0.0, 0.2)
-u = solve_grid(-1.0, 1.0, M, 32)
+xmin, xmax = -1.0, 1.0 # domain limits
+nc = 32 # number of cells
+solve_grid(xmin, xmax, M, nc; verbose = false)
+
 ```
 
 The returned vector `u` contains the grid vertices.
-
-![Gaussian refinement example](gaussian_refinement.png)
