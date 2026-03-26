@@ -25,7 +25,7 @@ M(x) = 1 + \alpha \exp\left(-\frac{(x - x_c)^2}{\sigma^2}\right)
 using PoissonGrids
 
 M = gaussian_monitor(5.0, 0.0, 0.2)
-u = solve_grid(-1.0, 1.0, M, 32)
+u = solve_grid(-1.0, 1.0, M, 32);
 ```
 
 The returned vector `u` contains the grid vertices
@@ -44,7 +44,7 @@ M(x) = 1 + \frac{\alpha + \alpha \tanh\left(\kappa (x - c)\right)}{2}
 using PoissonGrids
 
 M = tanh_monitor(5.0, 20, 0.0)
-u = solve_grid(-1.0, 1.0, M, 32)
+u = solve_grid(-1.0, 1.0, M, 32);
 ```
 
 This monitor transitions across a single interface, so the grid changes
@@ -57,19 +57,21 @@ The window monitor used in this example is
 ```math
 M(x) = 1 + \frac{\alpha}{2}
 \left[
-\tanh\left(\kappa (x + c)\right) - \tanh\left(\kappa (x - c)\right)
+\tanh\left(\kappa (x - c + b)\right) - \tanh\left(\kappa (x - c - b)\right)
 \right]
 ```
 
 ```@example window_example
 using PoissonGrids
 
-M = window_monitor(5.0, 20.0, 0.2)
-u = solve_grid(-1.0, 1.0, M, 32)
+M = window_monitor(2, 2.5, 3, 2.5)
+u = solve_grid(-10.0, 10.0, M, 32);
 ```
 
 This monitor creates a smooth high-resolution window around the interval
-`[-c, c]`, with coarser cells outside the window.
+`[c - b, c + b]`, with coarser cells outside the window.
+
+![](assets/window_refinement.png)
 
 ## Choosing a Monitor
 

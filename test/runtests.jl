@@ -26,14 +26,14 @@ using PoissonGrids
     end
 
     @testset "window_monitor" begin
-        α, κ, c = 4.0, 8.0, 0.5
-        M = window_monitor(α, κ, c)
+        α, κ, b, c = 4.0, 8.0, 0.5, 1.25
+        M = window_monitor(α, κ, b, c)
 
-        @test M(0.0) ≈ 1.0 + α atol = 1e-2
+        @test M(c) ≈ 1.0 + α atol = 1e-2
         @test M(-10.0) ≈ 1.0 atol = 1e-8
         @test M(10.0) ≈ 1.0 atol = 1e-8
-        @test M(-0.25) ≈ M(0.25)
-        @test M(0.0) > M(c + 0.5)
+        @test M(c - 0.25) ≈ M(c + 0.25)
+        @test M(c) > M(c + b + 0.5)
     end
 
 end
