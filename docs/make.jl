@@ -10,3 +10,9 @@ makedocs(;
         "API" => "api.md",
     ],
 )
+
+deploydocs(;
+    repo = "github.com/albert-de-montserrat/PoissonGrids.jl.git",
+    branch = "gh-pages",
+    devbranch = "main",
+)
