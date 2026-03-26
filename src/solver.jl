@@ -1,6 +1,6 @@
 ######################## Main ########################
 """
-    solve_grid(xmin, xmax, M, nc; verbose = false)
+    solve_grid(xmin, xmax, M, nc; verbose = false, tol = 1e-7, maxiter = 20_000)
 
 Solve the 1D grid-generation problem on `[xmin, xmax]` for a prescribed monitor.
 
@@ -16,6 +16,9 @@ the interior vertices so that the physical grid adapts to the monitor function
 
 # Keyword Arguments
 - `verbose = false`: print residual information every few nonlinear iterations.
+- `tol = 1e-7`: stopping tolerance for the normalized residual.
+- `maxiter = 20_000`: maximum number of nonlinear iterations. If convergence is
+  not reached within this budget, the solver throws [`ConvergenceError`](@ref).
 
 # Returns
 - A vector of grid-vertex coordinates spanning `[xmin, xmax]`.
@@ -23,10 +26,25 @@ the interior vertices so that the physical grid adapts to the monitor function
 # Example
 ```julia
 M = gaussian_monitor(10.0, -20.0, 1.0)
-u = solve_grid(-50.0, 50.0, M, 127; verbose = true)
+u = solve_grid(-50.0, 50.0, M, 127; verbose = true, tol = 1e-8)
 ```
 """
-function solve_grid(xmin, xmax, M, nc; verbose = false)
+struct ConvergenceError <: Exception
+    maxiter::Int
+    residual::Float64
+    tolerance::Float64
+end
+
+function Base.showerror(io::IO, err::ConvergenceError)
+    print(
+        io,
+        "solve_grid did not converge after $(err.maxiter) iterations ",
+        "(residual = $(err.residual), tolerance = $(err.tolerance)).",
+    )
+end
+
+function solve_grid(xmin, xmax, M, nc; verbose = false, tol = 1.0e-7, maxiter = 20_000)
+    validate_solver_inputs(xmin, xmax, nc, tol, maxiter)
 
     # Resolution
     nv  = nc + 1  # vertices 
@@ -38,6 +56,8 @@ function solve_grid(xmin, xmax, M, nc; verbose = false)
 
     # initial solution guess (uniform grid)
     u    = collect(LinRange(xmin, xmax, nv))
+
+    validate_monitor_on_grid(M, u)
 
     # Memory allocations
     r    = zeros(nv)
@@ -58,12 +78,12 @@ function solve_grid(xmin, xmax, M, nc; verbose = false)
     @. D = G / 2
 
     # Iteration parameters
-    tol    = 1.0e-7
-    niter  = 20000
     CFL    = 0.99
     c_fact = 0.9
     nr0    = 1e0
     n      = √(prod(nc))
+    converged = false
+    residual = Inf
 
     λmax = maximum(G ./ D)
     Δτ   = 2 / √(λmax) * CFL
@@ -73,7 +93,7 @@ function solve_grid(xmin, xmax, M, nc; verbose = false)
     β    = (2 - c * Δτ) / (2 + c * Δτ)
 
     # Iterations
-    for iter in 1:niter
+    for iter in 1:maxiter
         copyto!(r0, r)
     
         #-------------------------
@@ -84,13 +104,17 @@ function solve_grid(xmin, xmax, M, nc; verbose = false)
         #-------------------------
         update_rate!(∂u∂τ, r, D, β)
         update_variable!(u, ∂u∂τ, α)
+        validate_monitor_on_grid(M, u)
 
         if iter == 1 || mod(iter, 5) == 0
-            nr = norm(r) / √n
-            nr0 = iter == 1 ? nr : nr0
-            verbose && @info "iter. $(iter) --- abs. |r| =  $(norm(r)) ---  nr = $(nr / nr0)"
+            residual = norm(r) / √n
+            nr0 = iter == 1 ? residual : nr0
+            verbose && @info "iter. $(iter) --- abs. |r| =  $(norm(r)) ---  nr = $(residual / nr0)"
             
-            nr < tol && break
+            if residual < tol
+                converged = true
+                break
+            end
 
             # Step 1: compute flux Gershgorin first Gq = ∂q∂u
             run_flux!(Gq, u, M, Δξ, derivative)
@@ -109,7 +133,35 @@ function solve_grid(xmin, xmax, M, nc; verbose = false)
         end
     end
 
+    if !converged
+        residual = isfinite(residual) ? residual : norm(r) / √n
+        throw(ConvergenceError(maxiter, residual, float(tol)))
+    end
+
     return u
+end
+
+function validate_solver_inputs(xmin, xmax, nc, tol, maxiter)
+    xmin isa Real && isfinite(xmin) || throw(ArgumentError("xmin must be a finite real number."))
+    xmax isa Real && isfinite(xmax) || throw(ArgumentError("xmax must be a finite real number."))
+    xmin < xmax || throw(ArgumentError("xmin must be strictly smaller than xmax."))
+    nc isa Integer || throw(ArgumentError("nc must be an integer number of cells."))
+    nc > 0 || throw(ArgumentError("nc must be positive."))
+    tol isa Real && isfinite(tol) || throw(ArgumentError("tol must be a finite real number."))
+    tol > 0 || throw(ArgumentError("tol must be positive."))
+    maxiter isa Integer || throw(ArgumentError("maxiter must be an integer."))
+    maxiter > 0 || throw(ArgumentError("maxiter must be positive."))
+    return nothing
+end
+
+function validate_monitor_on_grid(M, u)
+    @inbounds for i in 1:length(u)-1
+        xmid = (u[i] + u[i + 1]) / 2
+        mx = M(xmid)
+        mx isa Real && isfinite(mx) || throw(ArgumentError("Monitor values must be finite real numbers."))
+        mx > 0 || throw(ArgumentError("Monitor values must stay strictly positive on the grid."))
+    end
+    return nothing
 end
 
 

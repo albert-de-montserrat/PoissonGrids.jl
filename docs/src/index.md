@@ -88,3 +88,6 @@ This monitor creates a smooth high-resolution window around the interval
   [`solve_grid`](@ref) has length `nc + 1`.
 - The domain endpoints remain fixed at `xmin` and `xmax`.
 - A constant monitor such as `x -> 1.0` reproduces a uniform grid.
+- The monitor must remain strictly positive and finite on the evolving grid.
+- [`solve_grid`](@ref) throws [`ConvergenceError`](@ref) if the residual does
+  not fall below `tol` within `maxiter` iterations.

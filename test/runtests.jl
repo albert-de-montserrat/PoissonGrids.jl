@@ -63,4 +63,33 @@ end
         @test minimum(Δx) < maximum(Δx)
         @test minimum(Δx) < (xmax - xmin) / nc
     end
+
+    @testset "rejects invalid inputs" begin
+        M = x -> 1.0
+
+        @test_throws ArgumentError solve_grid(0.0, 0.0, M, 8)
+        @test_throws ArgumentError solve_grid(1.0, -1.0, M, 8)
+        @test_throws ArgumentError solve_grid(-1.0, 1.0, M, 0)
+        @test_throws ArgumentError solve_grid(-1.0, 1.0, M, 8; tol = 0.0)
+        @test_throws ArgumentError solve_grid(-1.0, 1.0, M, 8; maxiter = 0)
+    end
+
+    @testset "rejects invalid monitor values" begin
+        @test_throws ArgumentError solve_grid(-1.0, 1.0, x -> 0.0, 8)
+        @test_throws ArgumentError solve_grid(-1.0, 1.0, x -> NaN, 8)
+    end
+
+    @testset "throws on non-convergence" begin
+        M = gaussian_monitor(5.0, 0.0, 0.2)
+        err = try
+            solve_grid(-1.0, 1.0, M, 32; maxiter = 1)
+            nothing
+        catch exc
+            exc
+        end
+        @test err isa ConvergenceError
+        @test err.maxiter == 1
+        @test err.tolerance == 1.0e-7
+        @test isfinite(err.residual)
+    end
 end

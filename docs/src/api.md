@@ -3,6 +3,7 @@
 ## Grid Generation
 
 ```@docs
+ConvergenceError
 solve_grid
 ```
 
