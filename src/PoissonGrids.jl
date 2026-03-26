@@ -10,7 +10,7 @@ const derivative = Val(true)
 const primitive = Val(false)
 
 include("monitors.jl")
-export gaussian_monitor, tanh_monitor
+export gaussian_monitor, tanh_monitor, window_monitor
 
 include("solver.jl")
 export solve_grid

@@ -11,4 +11,5 @@ solve_grid
 ```@docs
 gaussian_monitor
 tanh_monitor
+window_monitor
 ```

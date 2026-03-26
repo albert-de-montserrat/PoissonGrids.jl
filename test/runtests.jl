@@ -20,10 +20,22 @@ using PoissonGrids
         @test M(-10.0) ≈ 1.0 atol = 1e-8
         @test M(10.0) ≈ 1.0 + α atol = 1e-8
 
-        # `direction` is currently accepted but does not alter the profile.
-        @test Mleft(-1.0) ≈ M(-1.0)
-        @test Mleft(1.0) ≈ M(1.0)
+        @test Mleft(c) ≈ 1.0 + α / 2
+        @test Mleft(-10.0) ≈ 1.0 + α atol = 1e-8
+        @test Mleft(10.0) ≈ 1.0 atol = 1e-8
     end
+
+    @testset "window_monitor" begin
+        α, κ, c = 4.0, 8.0, 0.5
+        M = window_monitor(α, κ, c)
+
+        @test M(0.0) ≈ 1.0 + α atol = 1e-2
+        @test M(-10.0) ≈ 1.0 atol = 1e-8
+        @test M(10.0) ≈ 1.0 atol = 1e-8
+        @test M(-0.25) ≈ M(0.25)
+        @test M(0.0) > M(c + 0.5)
+    end
+
 end
 
 @testset "solve_grid" begin

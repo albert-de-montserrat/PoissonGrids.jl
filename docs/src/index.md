@@ -1,9 +1,9 @@
 # PoissonGrids.jl
 
 `PoissonGrids.jl` generates one-dimensional adaptive grids from scalar monitor
-functions. The package currently exposes two monitor constructors,
-[`gaussian_monitor`](@ref) and [`tanh_monitor`](@ref), together with the main
-solver [`solve_grid`](@ref).
+functions. The package currently exposes three monitor constructors,
+[`gaussian_monitor`](@ref), [`tanh_monitor`](@ref), and
+[`window_monitor`](@ref), together with the main solver [`solve_grid`](@ref).
 
 ## Overview
 
@@ -47,17 +47,38 @@ M = tanh_monitor(5.0, 20, 0.0)
 u = solve_grid(-1.0, 1.0, M, 32)
 ```
 
-This monitor increases smoothly across `x = 0`, so the grid transitions from
-coarser cells on the left to finer cells on the right.
+This monitor transitions across a single interface, so the grid changes
+smoothly from coarser cells on one side to finer cells on the other.
 
-![](assets/tanh_refinement.png)
+## Window Refinement
+
+The window monitor used in this example is
+
+```math
+M(x) = 1 + \frac{\alpha}{2}
+\left[
+\tanh\left(\kappa (x + c)\right) - \tanh\left(\kappa (x - c)\right)
+\right]
+```
+
+```@example window_example
+using PoissonGrids
+
+M = window_monitor(5.0, 20.0, 0.2)
+u = solve_grid(-1.0, 1.0, M, 32)
+```
+
+This monitor creates a smooth high-resolution window around the interval
+`[-c, c]`, with coarser cells outside the window.
 
 ## Choosing a Monitor
 
 - Use [`gaussian_monitor`](@ref) when refinement should be concentrated around a
   localized feature.
-- Use [`tanh_monitor`](@ref) when the mesh should transition smoothly across an
-  interface or boundary layer.
+- Use [`tanh_monitor`](@ref) when refinement should primarily favor one side of
+  a single interface.
+- Use [`window_monitor`](@ref) when refinement should be concentrated inside a
+  finite interval with smooth edges.
 
 ## Notes
 

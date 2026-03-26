@@ -41,8 +41,8 @@ when refinement is desired primarily on one side of an interface.
 - `c`: center of the transition.
 
 # Keyword Arguments
-- `direction = :right`: accepted for API compatibility. In the current
-  implementation the returned profile always increases toward larger `x`.
+- `direction = :right`: increasing profile toward larger `x`.
+- `direction = :left`: decreasing profile toward larger `x`.
 
 # Returns
 - A scalar function `M(x)` that evaluates the monitor at position `x`.
@@ -54,6 +54,39 @@ u = solve_grid(-50.0, 50.0, M, 127)
 ```
 """
 function tanh_monitor(α, κ, c; direction = :right)
-    s = direction === :right ? 1 : -1
-    x -> (α + α * tanh(κ * (x - c))) / 2 + 1
+    s = if direction === :right
+        1
+    elseif direction === :left
+        -1
+    else
+        throw(ArgumentError("direction must be :right or :left"))
+    end
+    x -> (α + s * α * tanh(κ * (x - c))) / 2 + 1
+end
+
+"""
+    window_monitor(α, κ, c)
+
+Construct a windowed hyperbolic-tangent monitor function.
+
+This monitor combines two opposing hyperbolic tangents to create a smooth
+refinement plateau centered around the origin. The monitor is close to `1 + α`
+inside the window `[-c, c]` and approaches `1` outside it.
+
+# Arguments
+- `α`: size of the monitor increase inside the window.
+- `κ`: transition sharpness. Larger values produce steeper window edges.
+- `c`: half-width of the refined window.
+
+# Returns
+- A scalar function `M(x)` that evaluates the monitor at position `x`.
+
+# Example
+```julia
+M = window_monitor(5.0, 20.0, 0.2)
+u = solve_grid(-1.0, 1.0, M, 127)
+```
+"""
+function window_monitor(α, κ, c)
+    x -> α * (tanh(κ * (x + c)) - tanh(κ * (x - c))) / 2 + 1
 end
