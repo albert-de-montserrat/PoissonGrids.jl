@@ -73,7 +73,7 @@ function solve_grid(xmin, xmax, M, nc; verbose = false)
     β    = (2 - c * Δτ) / (2 + c * Δτ)
 
     # Iterations
-    @time for iter in 1:niter
+    for iter in 1:niter
         copyto!(r0, r)
     
         #-------------------------
