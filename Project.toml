@@ -1,6 +1,6 @@
 name = "PoissonGrids"
 uuid = "738b24c9-c2dc-46c1-8999-11ea9699e80b"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["albert-de-montserrat <albert.de.montserrat@gmail.com>"]
 
 [deps]
