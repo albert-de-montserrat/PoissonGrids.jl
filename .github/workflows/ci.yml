@@ -18,6 +18,7 @@ jobs:
           - macos-latest
           - windows-latest
         julia-version:
+          - '1.10'
           - '1.11'
           - '1.12'
           - '1'
@@ -30,6 +31,35 @@ jobs:
           version: ${{ matrix.julia-version }}
 
       - uses: julia-actions/cache@v2
+
+      - uses: julia-actions/julia-buildpkg@v1
+
+      - uses: julia-actions/julia-runtest@v1
+
+      - uses: julia-actions/julia-processcoverage@v1
+
+      - uses: codecov/codecov-action@v5
+        with:
+          files: lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  downgrade:
+    name: Julia 1.10 / lowest compat bounds
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.10'
+
+      - uses: julia-actions/cache@v2
+
+      - uses: julia-actions/julia-downgrade-compat@v1
+        with:
+          skip: LinearAlgebra
 
       - uses: julia-actions/julia-buildpkg@v1
 
