@@ -1,9 +1,12 @@
 using Documenter
 using PoissonGrids
 
+DocMeta.setdocmeta!(PoissonGrids, :DocTestSetup, :(using PoissonGrids); recursive = true)
+
 makedocs(;
     sitename = "PoissonGrids.jl",
     modules = [PoissonGrids],
+    checkdocs = :exports,
     format = Documenter.HTML(),
     pages = [
         "Home" => "index.md",

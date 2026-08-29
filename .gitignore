@@ -2,3 +2,5 @@
 .vscode/
 docs/build/
 *.pdf
+Manifest.toml
+Manifest-v*.toml

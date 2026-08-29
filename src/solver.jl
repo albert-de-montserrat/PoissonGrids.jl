@@ -1,32 +1,25 @@
 ######################## Main ########################
 """
-    solve_grid(xmin, xmax, M, nc; verbose = false, tol = 1e-7, maxiter = 20_000)
+    ConvergenceError(maxiter, residual, tolerance)
 
-Solve the 1D grid-generation problem on `[xmin, xmax]` for a prescribed monitor.
+Exception thrown by [`solve_grid`](@ref) when the normalized residual is still
+above `tolerance` after `maxiter` nonlinear iterations.
 
-The solver starts from a uniform grid in computational space and iteratively moves
-the interior vertices so that the physical grid adapts to the monitor function
-`M(x)`. Regions where `M` is larger receive more grid points.
-
-# Arguments
-- `xmin`, `xmax`: physical domain bounds.
-- `M`: scalar monitor function evaluated on the current physical grid.
-- `nc`: number of cells in the final grid. The returned vertex array has length
-  `nc + 1`.
-
-# Keyword Arguments
-- `verbose = false`: print residual information every few nonlinear iterations.
-- `tol = 1e-7`: stopping tolerance for the normalized residual.
-- `maxiter = 20_000`: maximum number of nonlinear iterations. If convergence is
-  not reached within this budget, the solver throws [`ConvergenceError`](@ref).
-
-# Returns
-- A vector of grid-vertex coordinates spanning `[xmin, xmax]`.
+# Fields
+- `maxiter`: iteration budget that was exhausted.
+- `residual`: normalized residual reached on the final iteration.
+- `tolerance`: stopping tolerance that was requested.
 
 # Example
-```julia
-M = gaussian_monitor(10.0, -20.0, 1.0)
-u = solve_grid(-50.0, 50.0, M, 127; verbose = true, tol = 1e-8)
+```jldoctest
+julia> M = gaussian_monitor(5.0, 0.0, 0.2);
+
+julia> try
+           solve_grid(-1.0, 1.0, M, 32; maxiter = 1)
+       catch err
+           err isa ConvergenceError && err.maxiter
+       end
+1
 ```
 """
 struct ConvergenceError <: Exception
@@ -43,6 +36,42 @@ function Base.showerror(io::IO, err::ConvergenceError)
     )
 end
 
+"""
+    solve_grid(xmin, xmax, M, nc; verbose = false, tol = 1e-7, maxiter = 20_000)
+
+Solve the 1D grid-generation problem on `[xmin, xmax]` for a prescribed monitor.
+
+The solver starts from a uniform grid in computational space and iteratively moves
+the interior vertices so that the physical grid adapts to the monitor function
+`M(x)`. Regions where `M` is larger receive more grid points.
+
+# Arguments
+- `xmin`, `xmax`: physical domain bounds.
+- `M`: scalar monitor function evaluated on the current physical grid. It must
+  stay finite and strictly positive on every cell midpoint of the evolving grid.
+- `nc`: number of cells in the final grid. The returned vertex array has length
+  `nc + 1`.
+
+# Keyword Arguments
+- `verbose = false`: print residual information every few nonlinear iterations.
+- `tol = 1e-7`: stopping tolerance for the normalized residual.
+- `maxiter = 20_000`: maximum number of nonlinear iterations. If convergence is
+  not reached within this budget, the solver throws [`ConvergenceError`](@ref).
+
+# Returns
+- A vector of grid-vertex coordinates spanning `[xmin, xmax]`. The endpoints stay
+  fixed at `xmin` and `xmax`; only interior vertices move.
+
+# Example
+```jldoctest
+julia> M = gaussian_monitor(10.0, -20.0, 1.0);
+
+julia> u = solve_grid(-50.0, 50.0, M, 127; tol = 1e-8);
+
+julia> length(u), first(u), last(u)
+(128, -50.0, 50.0)
+```
+"""
 function solve_grid(xmin, xmax, M, nc; verbose = false, tol = 1.0e-7, maxiter = 20_000)
     validate_solver_inputs(xmin, xmax, nc, tol, maxiter)
 
