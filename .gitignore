@@ -4,3 +4,4 @@ docs/build/
 *.pdf
 Manifest.toml
 Manifest-v*.toml
+AGENTS.md
