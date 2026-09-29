@@ -1,10 +1,8 @@
 module PoissonGrids
 
-using ForwardDiff, StaticArrays
-import LinearAlgebra: norm
-
-using DifferentiationInterface
+using StaticArrays
 using ForwardDiff: ForwardDiff
+import LinearAlgebra: norm
 
 const derivative = Val(true)
 const primitive = Val(false)

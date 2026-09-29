@@ -18,9 +18,16 @@ and can be passed to [`solve_grid`](@ref) to concentrate grid points around `xc`
 - A scalar function `M(x)` that evaluates the monitor at position `x`.
 
 # Example
-```julia
-M = gaussian_monitor(5.0, -20.0, 1.0)
-u = solve_grid(-50.0, 50.0, M, 127)
+```jldoctest
+julia> M = gaussian_monitor(5.0, -20.0, 1.0);
+
+julia> M(-20.0)   # peak value, 1 + α
+6.0
+
+julia> u = solve_grid(-50.0, 50.0, M, 127);
+
+julia> length(u)
+128
 ```
 """
 function gaussian_monitor(α, xc, σ)
@@ -48,9 +55,16 @@ when refinement is desired primarily on one side of an interface.
 - A scalar function `M(x)` that evaluates the monitor at position `x`.
 
 # Example
-```julia
-M = tanh_monitor(5.0, 1e-1, 0.0; direction = :right)
-u = solve_grid(-50.0, 50.0, M, 127)
+```jldoctest
+julia> M = tanh_monitor(5.0, 1e-1, 0.0; direction = :right);
+
+julia> M(0.0)     # midpoint of the transition, 1 + α/2
+3.5
+
+julia> u = solve_grid(-50.0, 50.0, M, 127);
+
+julia> length(u)
+128
 ```
 """
 function tanh_monitor(α, κ, c; direction = :right)
@@ -83,9 +97,16 @@ inside the window `[c - b, c + b]` and approaches `1` outside it.
 - A scalar function `M(x)` that evaluates the monitor at position `x`.
 
 # Example
-```julia
-M = window_monitor(5.0, 20.0, 0.2, 0.0)
-u = solve_grid(-1.0, 1.0, M, 127)
+```jldoctest
+julia> M = window_monitor(5.0, 20.0, 0.2, 0.0);
+
+julia> round(M(0.0); digits = 3)   # plateau value, close to 1 + α
+5.997
+
+julia> u = solve_grid(-1.0, 1.0, M, 127);
+
+julia> length(u)
+128
 ```
 """
 function window_monitor(α, κ, b, c)
